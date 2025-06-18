@@ -1,2 +1,3 @@
 # Mini-Project-3
-ASL sign classification
+ASL sign classification <br>
+https://www.kaggle.com/datasets/datamunge/sign-language-mnist - Only fingerspelling signs (just in case we don't find it)
