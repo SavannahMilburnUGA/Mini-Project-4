@@ -1,2 +1,2 @@
 # Mini-Project-3
-ASL sign 
+ASL sign classification
