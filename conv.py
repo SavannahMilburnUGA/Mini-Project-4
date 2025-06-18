@@ -30,8 +30,7 @@ mini_batch_size = 10
 def shallow(n=3, epochs=60):
     nets = []
     for j in range(n):
-        print
-        "A shallow net with 100 hidden neurons"
+        print("A shallow net with 100 hidden neurons")
         net = Network([
             FullyConnectedLayer(n_in=784, n_out=100),
             SoftmaxLayer(n_in=100, n_out=10)], mini_batch_size)
