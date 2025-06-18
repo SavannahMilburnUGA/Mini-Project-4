@@ -1,23 +1,30 @@
-# Load ASL fingerspelling dataset from Kaggle
-# sign_language_loader.py
-# explore_dataset.py
+# ASL_loader.py - load ASL Kaggle dataset
 import kagglehub
 import os
 import pandas as pd
 import numpy as np
-# Return Kaggle Sign Language MNIST data as a tuple containing training data, validation data, test data
+
+# Create mapping from original labels to consecutive indices since skipped J & Z
+# Original: 0,1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+# Mapped:   0,1,2,3,4,5,6,7,8, 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23
+def map_label(original_label):
+    if original_label < 9:
+        return original_label
+    else:
+        return original_label - 1  # Shift down by 1 to fill gap from missing 9
+# Return Kaggle data as tuple containing training data, validation data, test data
 def load_data():
     # Download dataset
     path = kagglehub.dataset_download("datamunge/sign-language-mnist")
     
     # Load training data
     train_df = pd.read_csv(os.path.join(path, 'sign_mnist_train.csv'))
-    train_labels = train_df['label'].values
+    train_labels = np.array([map_label(label) for label in train_df['label'].values])  # Map labels
     train_images = train_df.drop('label', axis=1).values / 255.0  # Normalize to 0-1
     
     # Load test data  
     test_df = pd.read_csv(os.path.join(path, 'sign_mnist_test.csv'))
-    test_labels = test_df['label'].values
+    test_labels = np.array([map_label(label) for label in test_df['label'].values])  # Map labels
     test_images = test_df.drop('label', axis=1).values / 255.0
     
     # Split training into train/validation (similar to original MNIST)
@@ -44,7 +51,7 @@ def load_data_wrapper():
     
     return (training_data, validation_data, test_data)
 
-# Return 24-D vector w/ 1.0 in jth position
+# Return 24-D vector with 1.0 in jth position
 def vectorized_result(j):
     e = np.zeros((24, 1))
     e[j] = 1.0
