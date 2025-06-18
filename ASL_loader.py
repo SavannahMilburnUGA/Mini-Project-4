@@ -4,30 +4,48 @@
 import kagglehub
 import os
 import pandas as pd
+import numpy as np
+# Return Kaggle Sign Language MNIST data as a tuple containing training data, validation data, test data
+def load_data():
+    # Download dataset
+    path = kagglehub.dataset_download("datamunge/sign-language-mnist")
+    
+    # Load training data
+    train_df = pd.read_csv(os.path.join(path, 'sign_mnist_train.csv'))
+    train_labels = train_df['label'].values
+    train_images = train_df.drop('label', axis=1).values / 255.0  # Normalize to 0-1
+    
+    # Load test data  
+    test_df = pd.read_csv(os.path.join(path, 'sign_mnist_test.csv'))
+    test_labels = test_df['label'].values
+    test_images = test_df.drop('label', axis=1).values / 255.0
+    
+    # Split training into train/validation (similar to original MNIST)
+    val_size = 5000
+    validation_data = (train_images[:val_size], train_labels[:val_size])
+    training_data = (train_images[val_size:], train_labels[val_size:])
+    test_data = (test_images, test_labels)
+    
+    return (training_data, validation_data, test_data)
 
-# Download and explore
-path = kagglehub.dataset_download("datamunge/sign-language-mnist")
-print("Path to dataset files:", path)
+# Return data in format for NN
+def load_data_wrapper():
+    tr_d, va_d, te_d = load_data()
+    
+    training_inputs = [np.reshape(x, (784, 1)) for x in tr_d[0]]
+    training_results = [vectorized_result(y) for y in tr_d[1]]
+    training_data = list(zip(training_inputs, training_results))
+    
+    validation_inputs = [np.reshape(x, (784, 1)) for x in va_d[0]]
+    validation_data = list(zip(validation_inputs, va_d[1]))
+    
+    test_inputs = [np.reshape(x, (784, 1)) for x in te_d[0]]
+    test_data = list(zip(test_inputs, te_d[1]))
+    
+    return (training_data, validation_data, test_data)
 
-print("Files in dataset:")
-for file in os.listdir(path):
-    print(file)
-
-# Examine CSV files 
-import pandas as pd
-
-# Look at the training data
-train_df = pd.read_csv(os.path.join(path, 'sign_mnist_train.csv'))
-print("\n=== TRAINING DATA ===")
-print("Shape:", train_df.shape)
-print("Column names (first 10):", list(train_df.columns[:10]))
-print("Column names (last 5):", list(train_df.columns[-5:]))
-print("First few rows (first 10 columns):")
-print(train_df.iloc[:5, :10])
-
-# Look at the test data
-test_df = pd.read_csv(os.path.join(path, 'sign_mnist_test.csv'))
-print("\n=== TEST DATA ===")
-print("Shape:", test_df.shape)
-print("Labels distribution in training:")
-print(train_df['label'].value_counts().sort_index())
+# Return 24-D vector w/ 1.0 in jth position
+def vectorized_result(j):
+    e = np.zeros((24, 1))
+    e[j] = 1.0
+    return e
