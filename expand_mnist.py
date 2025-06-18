@@ -1,60 +1,75 @@
-"""expand_mnist.py
-~~~~~~~~~~~~~~~~~~
+"""
+expand_mnist.py
+~~~~~~~~~~~~~~~
 
-Take the 50,000 MNIST training images, and create an expanded set of
-250,000 images, by displacing each training image up, down, left and
-right, by one pixel.  Save the resulting file to
-../data/mnist_expanded.pkl.gz.
-
-Note that this program is memory intensive, and may not run on small
-systems.
+Expands the 50,000 MNIST training images to 250,000 by shifting each
+image up, down, left, and right by one pixel. Saves result as a .npz file.
 
 """
 
-from __future__ import print_function
-
-#### Libraries
-
-# Standard library
-import cPickle
-import gzip
-import os.path
+import os
 import random
-
-# Third-party libraries
 import numpy as np
+from tensorflow.keras.datasets import mnist
+
+SAVE_PATH = "../data/mnist_expanded.npz"
 
 print("Expanding the MNIST training set")
 
-if os.path.exists("../data/mnist_expanded.pkl.gz"):
-    print("The expanded training set already exists.  Exiting.")
+if os.path.exists(SAVE_PATH):
+    print("The expanded training set already exists. Exiting.")
 else:
-    f = gzip.open("../data/mnist.pkl.gz", 'rb')
-    training_data, validation_data, test_data = cPickle.load(f)
-    f.close()
-    expanded_training_pairs = []
-    j = 0 # counter
-    for x, y in zip(training_data[0], training_data[1]):
-        expanded_training_pairs.append((x, y))
-        image = np.reshape(x, (-1, 28))
-        j += 1
-        if j % 1000 == 0: print("Expanding image number", j)
-        # iterate over data telling us the details of how to
-        # do the displacement
+    (X_train_full, y_train_full), (X_test, y_test) = mnist.load_data()
+
+    # Use only first 50k for training, next 10k for validation
+    X_train, y_train = X_train_full[:50000], y_train_full[:50000]
+    X_val, y_val = X_train_full[50000:], y_train_full[50000:]
+
+    expanded_images = []
+    expanded_labels = []
+
+    for j, (x, y) in enumerate(zip(X_train, y_train)):
+        expanded_images.append(x)
+        expanded_labels.append(y)
+        if j % 1000 == 0:
+            print(f"Expanding image number {j}")
+
         for d, axis, index_position, index in [
-                (1,  0, "first", 0),
-                (-1, 0, "first", 27),
-                (1,  1, "last",  0),
-                (-1, 1, "last",  27)]:
-            new_img = np.roll(image, d, axis)
+                (1,  0, "first", 0),   # down
+                (-1, 0, "first", 27), # up
+                (1,  1, "last",  0),  # right
+                (-1, 1, "last",  27)  # left
+            ]:
+            new_img = np.roll(x, d, axis)
             if index_position == "first":
-                new_img[index, :] = np.zeros(28)
+                if axis == 0:
+                    new_img[index, :] = 0
+                else:
+                    new_img[:, index] = 0
             else:
-                new_img[:, index] = np.zeros(28)
-            expanded_training_pairs.append((np.reshape(new_img, 784), y))
-    random.shuffle(expanded_training_pairs)
-    expanded_training_data = [list(d) for d in zip(*expanded_training_pairs)]
-    print("Saving expanded data. This may take a few minutes.")
-    f = gzip.open("../data/mnist_expanded.pkl.gz", "w")
-    cPickle.dump((expanded_training_data, validation_data, test_data), f)
-    f.close()
+                if axis == 0:
+                    new_img[index, :] = 0
+                else:
+                    new_img[:, index] = 0
+            expanded_images.append(new_img)
+            expanded_labels.append(y)
+
+    # Shuffle dataset
+    combined = list(zip(expanded_images, expanded_labels))
+    random.shuffle(combined)
+    expanded_images, expanded_labels = zip(*combined)
+    expanded_images = np.array(expanded_images).reshape(-1, 784) / 255.0
+    expanded_labels = np.array(expanded_labels)
+
+    # Also normalize validation/test sets
+    X_val = X_val.reshape(-1, 784) / 255.0
+    X_test = X_test.reshape(-1, 784) / 255.0
+
+    print("Saving expanded dataset to", SAVE_PATH)
+    np.savez_compressed(SAVE_PATH,
+                        train_images=expanded_images,
+                        train_labels=expanded_labels,
+                        val_images=X_val,
+                        val_labels=y_val,
+                        test_images=X_test,
+                        test_labels=y_test)
