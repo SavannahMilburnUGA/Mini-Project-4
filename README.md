@@ -5,7 +5,7 @@ https://www.kaggle.com/datasets/datamunge/sign-language-mnist - Only fingerspell
 # Understanding Kaggle data structure
 * Format: label, pixel1, pixel2, ..., pixel784
 * Labels: 0-24 (A-Y. Doesn't have J=9 OR Z=25). 
-* 24 classes
+* 24 classes <br>
 sign_mnist_train.csv = Training data: <br>
 * 27,455 samples w/ 785 columns (1 label + 784 pixels)
 sign_mnist_test.csv = Testing data: <br>
