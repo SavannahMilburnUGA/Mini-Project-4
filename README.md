@@ -7,6 +7,6 @@ https://www.kaggle.com/datasets/datamunge/sign-language-mnist - Only fingerspell
 * Labels: 0-24 (A-Y. Doesn't have J=9 OR Z=25). 
 * 24 classes <br>
 sign_mnist_train.csv = Training data: <br>
-* 27,455 samples w/ 785 columns (1 label + 784 pixels)
+* 27,455 samples w/ 785 columns (1 label + 784 pixels) <br>
 sign_mnist_test.csv = Testing data: <br>
 * 7172 samples w/ 785 columns (1 label + 784 pixels)
