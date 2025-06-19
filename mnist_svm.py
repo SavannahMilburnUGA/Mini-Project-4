@@ -6,7 +6,7 @@ A handwritten digit classifier using a manually implemented
 linear SVM-like model trained with hinge loss and gradient descent.
 """
 
-import mnist_loader
+import sign_language_loader
 import numpy as np
 
 

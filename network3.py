@@ -1,8 +1,9 @@
+from sign_language_loader import load_data_wrapper
 import numpy as np
 from tensorflow.keras import layers, models, utils, datasets
 
 # Load and preprocess MNIST data
-(x_train, y_train), (x_test, y_test) = datasets.mnist.load_data()
+(x_train, y_train), (x_test, y_test) = load_data_wrapper()
 x_train, x_test = x_train / 255.0, x_test / 255.0
 x_train = x_train[..., np.newaxis]
 x_test = x_test[..., np.newaxis]
@@ -24,7 +25,7 @@ model = models.Sequential([
     layers.Flatten(),
     layers.Dense(100, activation='sigmoid'),
     layers.Dropout(0.5),
-    layers.Dense(10, activation='softmax')
+    layers.Dense(24, activation='softmax')
 ])
 
 # Compile the model

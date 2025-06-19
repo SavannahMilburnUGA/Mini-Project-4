@@ -22,7 +22,7 @@ from naive ideas."""
 from collections import defaultdict
 
 # My libraries
-import mnist_loader
+import sign_language_loader
 
 def main():
     training_data, validation_data, test_data = mnist_loader.load_data()

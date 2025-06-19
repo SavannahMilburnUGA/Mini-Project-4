@@ -1,4 +1,5 @@
-"""network2.py
+"""
+network2.py
 ~~~~~~~~~~~~~~
 
 An improved version of network.py, implementing the stochastic
@@ -330,3 +331,11 @@ def sigmoid(z):
 def sigmoid_prime(z):
     """Derivative of the sigmoid function."""
     return sigmoid(z)*(1-sigmoid(z))
+
+
+
+
+
+
+
+
