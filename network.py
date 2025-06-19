@@ -67,13 +67,10 @@ class Network(object):
         return a
 
     # Train NN using mini-batch stochastic gradient descent
-    # training_data: list of tuples (x, y) of training inputs & desired outputs
-    # evaluation_data: validation/test data - can set flags to monitor cost/accuracy 
-    # Returns tuple of 4 lists: per-epoch costs on evaluation data, accuracies on " ", 
-    # costs on training data, accuracies on " "
+    # training_data: list of tuples (x, y) of training inputs & desired outputs evaluation_data: validation/test data - can set flags to monitor cost/accuracy 
+    # Returns tuple of 4 lists: per-epoch costs on evaluation data, accuracies on " ", costs on training data, accuracies on " "
     # All values evaluated at end of training epoch
-    # Ex: if we train 30 epochs, first element of tuple is 30-element list containg cost
-    # on evaluation data at end of each epoch
+    # Ex: if we train 30 epochs, first element of tuple is 30-element list containg cost on evaluation data at end of each epoch
     # Lists are empy if flag not set
     def SGD(self, training_data, epochs, mini_batch_size, eta,
             lmbda = 0.0,
@@ -118,14 +115,12 @@ class Network(object):
         return evaluation_cost, evaluation_accuracy, \
             training_cost, training_accuracy
 
+    # Update NN weights/biases via gradient descent using backpropagation to a single mini batch
+    # mini_batch: list of tuples (x, y)
+    # eta: learning rate
+    # lmbda: regularization param
+    # n: total size of training data set
     def update_mini_batch(self, mini_batch, eta, lmbda, n):
-        """Update the network's weights and biases by applying gradient
-        descent using backpropagation to a single mini batch.  The
-        ``mini_batch`` is a list of tuples ``(x, y)``, ``eta`` is the
-        learning rate, ``lmbda`` is the regularization parameter, and
-        ``n`` is the total size of the training data set.
-
-        """
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
         for x, y in mini_batch:
@@ -137,11 +132,9 @@ class Network(object):
         self.biases = [b-(eta/len(mini_batch))*nb
                        for b, nb in zip(self.biases, nabla_b)]
 
+    # Return tuple (nabla_b, nabla_w): gradient for cost function C_x
+    # nabla_b/nabla_a: layer by layer lists of numpy arrays (like self.biases/self.weights)
     def backprop(self, x, y):
-        """Return a tuple ``(nabla_b, nabla_w)`` representing the
-        gradient for the cost function C_x.  ``nabla_b`` and
-        ``nabla_w`` are layer-by-layer lists of numpy arrays, similar
-        to ``self.biases`` and ``self.weights``."""
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
         # feedforward
@@ -157,12 +150,8 @@ class Network(object):
         delta = (self.cost).delta(zs[-1], activations[-1], y)
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
-        # Note that the variable l in the loop below is used a little
-        # differently to the notation in Chapter 2 of the book.  Here,
-        # l = 1 means the last layer of neurons, l = 2 is the
-        # second-last layer, and so on.  It's a renumbering of the
-        # scheme in the book, used here to take advantage of the fact
-        # that Python can use negative indices in lists.
+        # l = 1 means last layer of neurons
+        # l = 2: second to last layer, etc. to take advantage of Python's negative indices in lists
         for l in range(2, self.num_layers):
             z = zs[-l]
             sp = sigmoid_prime(z)
@@ -171,29 +160,13 @@ class Network(object):
             nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
         return (nabla_b, nabla_w)
 
+    # Return # of inputs in data for which NN outputs correct result
+    # NN's output assumed to be index of neuron in final layer w/ highest activation
     def accuracy(self, data, convert=False):
-        """Return the number of inputs in ``data`` for which the neural
-        network outputs the correct result. The neural network's
-        output is assumed to be the index of whichever neuron in the
-        final layer has the highest activation.
-
-        The flag ``convert`` should be set to False if the data set is
-        validation or test data (the usual case), and to True if the
-        data set is the training data. The need for this flag arises
-        due to differences in the way the results ``y`` are
-        represented in the different data sets.  In particular, it
-        flags whether we need to convert between the different
-        representations.  It may seem strange to use different
-        representations for the different data sets.  Why not use the
-        same representation for all three data sets?  It's done for
-        efficiency reasons -- the program usually evaluates the cost
-        on the training data and the accuracy on other data sets.
-        These are different types of computations, and using different
-        representations speeds things up.  More details on the
-        representations can be found in
-        mnist_loader.load_data_wrapper.
-
-        """
+        # flag convert set to F if data is validation/test data (usual case)
+        # convert set to T if data is training data
+        # Use diff. representations for diff. data sets bc. more efficient
+        # Program usually evaluates cost of training data & accuracy on other data sets
         if convert:
             results = [(np.argmax(self.feedforward(x)), np.argmax(y))
                        for (x, y) in data]
@@ -202,13 +175,10 @@ class Network(object):
                         for (x, y) in data]
         return sum(int(x == y) for (x, y) in results)
 
+    # Returns total cost for data
+    # flag convert set to F if data is training data (usual case)
+    # convert set to T if data is validation/test data 
     def total_cost(self, data, lmbda, convert=False):
-        """Return the total cost for the data set ``data``.  The flag
-        ``convert`` should be set to False if the data set is the
-        training data (the usual case), and to True if the data set is
-        the validation or test data.  See comments on the similar (but
-        reversed) convention for the ``accuracy`` method, above.
-        """
         cost = 0.0
         for x, y in data:
             a = self.feedforward(x)
@@ -218,8 +188,8 @@ class Network(object):
             np.linalg.norm(w)**2 for w in self.weights)
         return cost
 
+    # Save NN to file filename
     def save(self, filename):
-        """Save the neural network to the file ``filename``."""
         data = {"sizes": self.sizes,
                 "weights": [w.tolist() for w in self.weights],
                 "biases": [b.tolist() for b in self.biases],
@@ -228,12 +198,9 @@ class Network(object):
         json.dump(data, f)
         f.close()
 
-#### Loading a Network
+# Loading a NN from filename
+# Return instance of NN
 def load(filename):
-    """Load a neural network from the file ``filename``.  Returns an
-    instance of Network.
-
-    """
     f = open(filename, "r")
     data = json.load(f)
     f.close()
@@ -243,21 +210,18 @@ def load(filename):
     net.biases = [np.array(b) for b in data["biases"]]
     return net
 
-#### Miscellaneous functions
+# Miscellaneous functions
+# Return 24-D unit vector w/ 1.0 in jth position & 0s else
+# Used to convert a sign to corresponding desired output from NN
 def vectorized_result(j):
-    """Return a 24-D unit vector with a 1.0 in the j'th position
-    and zeroes elsewhere.  This is used to convert a digit (0...9)
-    into a corresponding desired output from the neural network.
-
-    """
     e = np.zeros((24, 1))
     e[j] = 1.0
     return e
 
+# Sigmoid function
 def sigmoid(z):
-    """The sigmoid function."""
     return 1.0/(1.0+np.exp(-z))
 
+# Derivative of sigmoid function
 def sigmoid_prime(z):
-    """Derivative of the sigmoid function."""
     return sigmoid(z)*(1-sigmoid(z))
