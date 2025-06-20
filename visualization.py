@@ -1,8 +1,9 @@
-# Visualize ASL Neural Network Comparison Results
-# Creates clean, presentation-ready charts comparing 3 network architectures
+# Combined ASL Neural Network Visualization
+# Includes learning curves + comparison charts + architecture diagrams
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pickle
 
 # Set modern academic styling
 plt.style.use('seaborn-v0_8-whitegrid')
@@ -28,26 +29,98 @@ plt.rcParams.update({
     'text.color': '#333333'
 })
 
-# Sample results - replace with your actual results after running training
-# Format: {'network_name': {'accuracy': correct_predictions, 'time': seconds}}
-results = {
-    'Simple': {'accuracy': 4500, 'time': 120},        # Example: 62.7% accuracy
-    'Improved': {'accuracy': 5200, 'time': 180},      # Example: 72.5% accuracy  
-    'Deep': {'accuracy': 5800, 'time': 450}           # Example: 80.9% accuracy
-}
+def load_training_data():
+    """Load actual training results from pickle file"""
+    try:
+        with open('asl_training_results.pkl', 'rb') as f:
+            results = pickle.load(f)
+        return results
+    except FileNotFoundError:
+        print("Training results file not found! Using sample data for demo.")
+        # Return sample data if no training results exist
+        return {
+            'simple': {'accuracy': 4500, 'time': 120, 'train_accuracy': [3000]*30, 'val_accuracy': [2500]*30, 'train_cost': [0]*30, 'val_cost': [0]*30},
+            'improved': {'accuracy': 5200, 'time': 180, 'train_accuracy': [4000]*30, 'val_accuracy': [3500]*30, 'train_cost': [1.5]*30, 'val_cost': [1.8]*30},
+            'deep': {'accuracy': 5800, 'time': 450, 'train_accuracy': [4500]*30, 'val_accuracy': [4000]*30, 'train_cost': [1.2]*30, 'val_cost': [1.4]*30}
+        }
 
-# Total test samples (update with your actual test set size)
-total_test_samples = 7172
+def convert_to_percentages(accuracy_list, total_samples):
+    """Convert raw accuracy counts to percentages"""
+    return [(acc / total_samples) * 100 for acc in accuracy_list]
 
-def create_comparison_charts():
+def create_learning_curves(data, training_size=22000, validation_size=5000):
+    """Create learning curves visualization"""
+    
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
+    fig.suptitle('ASL Neural Network Learning Curves', 
+                fontsize=18, fontweight='600', color='#2C3E50', y=0.98)
+    
+    # Colors for each network
+    colors = {'simple': '#3498DB', 'improved': '#E74C3C', 'deep': '#2ECC71'}
+    epochs = range(1, 31)  # 30 epochs
+    
+    # Top plot: Accuracy curves
+    for network_name in ['simple', 'improved', 'deep']:
+        if network_name in data:
+            network_data = data[network_name]
+            
+            # Convert to percentages
+            train_acc_pct = convert_to_percentages(network_data['train_accuracy'], training_size)
+            val_acc_pct = convert_to_percentages(network_data['val_accuracy'], validation_size)
+            
+            ax1.plot(epochs, train_acc_pct, 
+                   color=colors[network_name], linestyle='-', linewidth=2.5,
+                   label=f'{network_name.title()} - Training', alpha=0.8)
+            
+            ax1.plot(epochs, val_acc_pct,
+                   color=colors[network_name], linestyle='--', linewidth=2.5, 
+                   label=f'{network_name.title()} - Validation', alpha=0.8)
+    
+    ax1.set_ylabel('Accuracy (%)', fontsize=12, color='#2C3E50')
+    ax1.set_title('Training vs Validation Accuracy', fontsize=14, fontweight='600', color='#2C3E50')
+    ax1.grid(True, alpha=0.3)
+    ax1.set_ylim(0, 100)
+    
+    # Bottom plot: Loss curves (only for improved and deep networks)
+    for network_name in ['improved', 'deep']:
+        if network_name in data and len(data[network_name]['train_cost']) > 0:
+            network_data = data[network_name]
+            
+            # Only plot if we have actual cost data (not zeros)
+            if max(network_data['train_cost']) > 0:
+                ax2.plot(epochs, network_data['train_cost'], 
+                       color=colors[network_name], linestyle='-', linewidth=2.5,
+                       label=f'{network_name.title()} - Training Loss', alpha=0.8)
+                
+                ax2.plot(epochs, network_data['val_cost'],
+                       color=colors[network_name], linestyle='--', linewidth=2.5,
+                       label=f'{network_name.title()} - Validation Loss', alpha=0.8)
+    
+    ax2.set_xlabel('Epoch', fontsize=12, color='#2C3E50')
+    ax2.set_ylabel('Loss', fontsize=12, color='#2C3E50')
+    ax2.set_title('Training vs Validation Loss', fontsize=14, fontweight='600', color='#2C3E50')
+    ax2.grid(True, alpha=0.3)
+    
+    # Single legend for both subplots
+    handles1, labels1 = ax1.get_legend_handles_labels()
+    fig.legend(handles1, labels1, loc='center right', 
+              frameon=True, fancybox=True, shadow=True, fontsize=9)
+    
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.92)
+    plt.savefig('asl_learning_curves.png', dpi=300, bbox_inches='tight', facecolor='white')
+    plt.show()
+
+def create_comparison_charts(data, total_test_samples=7172):
     """Create side-by-side comparison charts"""
     
-    # Convert to percentages and minutes
-    networks = list(results.keys())
-    accuracies = [(results[net]['accuracy'] / total_test_samples) * 100 for net in networks]
-    times = [results[net]['time'] / 60 for net in networks]  # Convert to minutes
+    # Extract data for comparison
+    networks = ['Simple', 'Improved', 'Deep']
+    network_keys = ['simple', 'improved', 'deep']
+    accuracies = [(data[key]['accuracy'] / total_test_samples) * 100 for key in network_keys]
+    times = [data[key]['time'] / 60 for key in network_keys]  # Convert to minutes
     
-    # Set up the plot with modern academic styling
+    # Set up the plot
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 6))
     fig.suptitle('ASL Letter Recognition: Neural Network Comparison', 
                 fontsize=18, fontweight='600', color='#2C3E50', y=0.95)
@@ -101,29 +174,6 @@ def create_comparison_charts():
                 facecolor='white', edgecolor='none')
     plt.show()
 
-def create_summary_table():
-    """Create a summary table of results"""
-    
-    print("\n" + "="*60)
-    print("           ASL NEURAL NETWORK COMPARISON")
-    print("="*60)
-    print(f"{'Network':<12} {'Accuracy':<12} {'Time':<12} {'Parameters':<12}")
-    print("-"*60)
-    
-    # Calculate parameters for each network (approximate)
-    param_counts = {
-        'Simple': 784*30 + 30*24 + 30 + 24,           # ~24K parameters
-        'Improved': 784*30 + 30*24 + 30 + 24,         # ~24K parameters  
-        'Deep': 784*100 + 100*50 + 50*25 + 25*24 + 100 + 50 + 25 + 24  # ~85K parameters
-    }
-    
-    for network in results.keys():
-        accuracy = (results[network]['accuracy'] / total_test_samples) * 100
-        time_min = results[network]['time'] / 60
-        params = param_counts[network]
-        
-        print(f"{network:<12} {accuracy:>8.1f}%    {time_min:>8.1f}m    {params/1000:>8.1f}K")
-
 def create_architecture_diagram():
     """Create a simple diagram showing the three architectures"""
     
@@ -170,15 +220,51 @@ def create_architecture_diagram():
                 facecolor='white', edgecolor='none')
     plt.show()
 
-if __name__ == "__main__":
-    print("Creating ASL Neural Network Visualizations...")
-    print("\n1. Comparison Charts")
-    create_comparison_charts()
+def create_summary_table(data, total_test_samples=7172):
+    """Create a summary table of results"""
     
-    print("\n2. Results Summary")
-    create_summary_table()
+    print("\n" + "="*60)
+    print("           ASL NEURAL NETWORK COMPARISON")
+    print("="*60)
+    print(f"{'Network':<12} {'Accuracy':<12} {'Time':<12} {'Parameters':<12}")
+    print("-"*60)
+    
+    # Calculate parameters for each network (approximate)
+    param_counts = {
+        'simple': 784*30 + 30*24 + 30 + 24,           # ~24K parameters
+        'improved': 784*30 + 30*24 + 30 + 24,         # ~24K parameters  
+        'deep': 784*100 + 100*50 + 50*25 + 25*24 + 100 + 50 + 25 + 24  # ~85K parameters
+    }
+    
+    network_names = ['Simple', 'Improved', 'Deep']
+    network_keys = ['simple', 'improved', 'deep']
+    
+    for name, key in zip(network_names, network_keys):
+        accuracy = (data[key]['accuracy'] / total_test_samples) * 100
+        time_min = data[key]['time'] / 60
+        params = param_counts[key]
+        
+        print(f"{name:<12} {accuracy:>8.1f}%    {time_min:>8.1f}m    {params/1000:>8.1f}K")
+
+if __name__ == "__main__":
+    print("Creating Combined ASL Neural Network Visualizations...")
+    
+    # Load training data (or use sample data if not available)
+    data = load_training_data()
+    
+    print("\n1. Learning Curves")
+    create_learning_curves(data)
+    
+    print("\n2. Comparison Charts")
+    create_comparison_charts(data)
     
     print("\n3. Architecture Diagrams")
     create_architecture_diagram()
     
-    print("\nVisualization complete! Check the saved PNG files.")
+    print("\n4. Results Summary")
+    create_summary_table(data)
+    
+    print("\nVisualization complete! Generated files:")
+    print("• asl_learning_curves.png")
+    print("• asl_network_comparison.png") 
+    print("• asl_architectures.png")
