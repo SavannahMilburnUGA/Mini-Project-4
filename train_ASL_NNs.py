@@ -3,6 +3,7 @@
 import ASL_loader
 import simpleNN
 import deepNN
+import CNN
 import time
 
 # Load the ASL data once
@@ -33,4 +34,20 @@ deep_net_time = time.time() - start_time
 deep_net_accuracy = deep_net.accuracy(test_data)
 results['deep'] = {'accuracy': deep_net_accuracy, 'time': deep_net_time}
 
-# Train CNN 
+# # Train CNN - I cannot get the TensorFlow to work on my machine so scratch this CNN
+# print("\nTraining CNN...")
+# start_time = time.time()
+# # Create CNN 
+# cnn_net = CNN.CNNNetwork()
+# # Train using same parameters as other networks
+# cnn_net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
+# cnn_net_time = time.time() - start_time
+# cnn_net_accuracy = cnn_net.accuracy(test_data)
+# results['CNN'] = {'accuracy': cnn_net_accuracy, 'time': cnn_net_time}
+
+# Print all results
+print("\nTraining Complete! Results:")
+for network_type, data in results.items():
+    total_test = len(test_data)
+    percentage = (data['accuracy'] / total_test) * 100
+    print(f"{network_type}: {data['accuracy']}/{total_test} = {percentage:.1f}% in {data['time']:.1f}s")
