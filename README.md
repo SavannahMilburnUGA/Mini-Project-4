@@ -12,4 +12,6 @@ We can analyze how certain changes in neural network architecture impact accurac
 sign_mnist_train.csv = Training data: <br>
 * 27,455 samples w/ 785 columns (1 label + 784 pixels) <br>
 sign_mnist_test.csv = Testing data: <br>
-* 7172 samples w/ 785 columns (1 label + 784 pixels)
+* 7172 samples w/ 785 columns (1 label + 784 pixels) <br>
+
+AI was used in helping generate visualizations and debugging network examples from the Nielsen textbook.
