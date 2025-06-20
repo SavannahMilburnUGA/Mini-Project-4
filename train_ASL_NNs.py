@@ -3,7 +3,7 @@
 import ASL_loader
 import simpleNN
 import deepNN
-import CNN
+# import CNN
 import time
 
 # Load the ASL data once
@@ -22,6 +22,17 @@ simple_net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
 simple_net_time = time.time() - start_time
 simple_net_accuracy = simple_net.evaluate(test_data)  # Use evaluate() not accuracy()
 results['simple'] = {'accuracy': simple_net_accuracy, 'time': simple_net_time}
+
+# Train improved simple NN - showcases impacts of improvements of cross-entropy cost function, regularization, and better network weight initialization
+print("\nTraining improved simple ASL NN...")
+start_time = time.time()
+# Create deep neural network (3 hidden layers w/ 100, 50, 25 neurons)
+improved_net = deepNN.Network([784, 30, 24])
+# Train using SGD - same parameters as textbook digit classifier
+improved_net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
+improved_net_time = time.time() - start_time
+improved_net_accuracy = improved_net.accuracy(test_data)
+results['improved'] = {'accuracy': improved_net_accuracy, 'time': improved_net_time}
 
 # Train deep NN 
 print("\nTraining deep ASL NN...")
