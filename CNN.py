@@ -11,14 +11,24 @@ class CNNNetwork:
     
     # Build CNN for ASL classification
     def build_model(self):
+        # Sigmoid activations, which are outdated for CNNs. Replace them with ReLU:
+
         model = models.Sequential()
-        model.add(layers.Conv2D(20, (5, 5), activation='sigmoid', input_shape=(28, 28, 1)))
+        # First conv layer with ReLU
+        model.add(layers.Conv2D(20, (5, 5), activation='relu', input_shape=(28, 28, 1)))
         model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-        model.add(layers.Conv2D(40, (5, 5), activation='sigmoid'))
+
+        # Second conv layer with ReLU
+        model.add(layers.Conv2D(40, (5, 5), activation='relu'))
         model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+
+        # Flatten and fully connected layers
         model.add(layers.Flatten())
-        model.add(layers.Dense(100, activation='sigmoid'))
-        model.add(layers.Dense(24, activation='softmax'))  # 24 classes for ASL
+        model.add(layers.Dense(100, activation='relu'))
+
+        # Output layer with softmax for classification
+        model.add(layers.Dense(24, activation='softmax'))
+
         return model
     
     # Train CNN to match other NNs
