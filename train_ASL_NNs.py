@@ -1,7 +1,8 @@
 # Trains NN to recognize ASL finger-spelling letters (except J, Z) for 3 different NN architectures
 # Mimics interactive Python shell training from textbook digit classifier 
 import ASL_loader
-import network
+import simpleNN
+import deepNN
 import time
 
 # Load the ASL data once
@@ -12,17 +13,24 @@ results = {}
 
 # Train simple NN
 print("Training simple ASL NN...")
+start_time = time.time()
+# Create simple neural network w/ 30 hidden neurons
+simple_net = simpleNN.Network([784, 30, 24])
+# Train using SGD - same parameters as textbook digit classifier
+simple_net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
+simple_net_time = time.time() - start_time
+simple_net_accuracy = simple_net.evaluate(test_data)  # Use evaluate() not accuracy()
+results['simple'] = {'accuracy': simple_net_accuracy, 'time': simple_net_time}
 
 # Train deep NN 
 print("\nTraining deep ASL NN...")
 start_time = time.time()
 # Create deep neural network (3 hidden layers w/ 100, 50, 25 neurons)
-deepNN = network.Network([784, 100, 50, 25, 24])
+deep_net = deepNN.Network([784, 100, 50, 25, 24])
 # Train using SGD - same parameters as textbook digit classifier
-deepNN.SGD(training_data, 30, 10, 3.0, test_data=test_data)
-deepNN_time = time.time() - start_time
-deepNN_accuracy = deepNN.accuracy(test_data)
-results['deep'] = {'accuracy': deepNN_accuracy, 'time': deepNN_time}
+deep_net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
+deep_net_time = time.time() - start_time
+deep_net_accuracy = deep_net.accuracy(test_data)
+results['deep'] = {'accuracy': deep_net_accuracy, 'time': deep_net_time}
 
 # Train CNN 
-
