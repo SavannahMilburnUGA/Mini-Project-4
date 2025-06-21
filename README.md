@@ -1,4 +1,4 @@
-# Mini-Project-4
+# Mini-Project-4: ASL Classifier Neural Networks
 This program analyzes different neural network architectures for classifying ASL fingerspelling shapes accurately. <br>
 We use a simple neural network, an improved simple neural network w/ improvements of cross-entropy cost function, regularization, and better network weight initialization, and a deep neural network that used the same improved neural network file but is created with multiple hidden layers in the training script. <br>
 We also use a CNN; however, due to time constraints, we could not figure out the bug in the learning curves to include all 4 network models so the learning curves only includes the simple, improved, and deep neural network models. <br>
